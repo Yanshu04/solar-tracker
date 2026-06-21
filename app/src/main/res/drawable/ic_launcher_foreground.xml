@@ -1,0 +1,29 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Rising Sun element -->
+    <group>
+        <path
+            android:fillColor="#FBC02D"
+            android:pathData="M54,38m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" />
+            
+        <path
+            android:strokeColor="#FBC02D"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:pathData="M54,20L54,14 M54,62L54,56 M36,38L30,38 M72,38L78,38 M41,25L37,21 M67,51L71,55 M67,25L71,21 M41,51L37,55" />
+    </group>
+
+    <!-- Pivoting Solar array grid in perspective -->
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M26,72 L82,72 L72,90 L36,90 Z" />
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M54,72 L54,90 M39,72 L45,90 M69,72 L63,90 M26,72 L82,72 M29,81 L79,81" />
+</vector>

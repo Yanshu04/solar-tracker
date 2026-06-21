@@ -1,0 +1,8 @@
+{
+  "name": "Solar Tracker",
+  "description": "Solar panel tracking manager showing live weather, forecast, panel status, and controls for Rajkot sites.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
