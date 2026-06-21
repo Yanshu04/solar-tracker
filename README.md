@@ -1,7 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="Solar Tracker Banner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
-
 # Solar Tracker
 
 Solar Tracker is an Android application designed to manage and monitor solar panel installations. It provides a comprehensive dashboard for tracking real-time panel status, weather conditions, and performance forecasts, with a specific focus on solar sites in the Rajkot region.
