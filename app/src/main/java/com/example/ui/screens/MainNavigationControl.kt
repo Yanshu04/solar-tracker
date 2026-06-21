@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -80,7 +81,8 @@ fun MainNavigationControl(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "home"
+            startDestination = "home",
+            modifier = Modifier.padding(innerPadding)
         ) {
             composable("home") {
                 HomeScreen(
