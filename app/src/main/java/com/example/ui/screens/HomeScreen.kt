@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Site
 import com.example.ui.SolarViewModel
 import com.example.ui.theme.*
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.cos
@@ -55,6 +56,15 @@ fun HomeScreen(
     val isStormActive = activeStorms.isNotEmpty()
 
     val formatTime = remember { SimpleDateFormat("hh:mm:ss a", Locale.getDefault()) }
+    val formatDate = remember { SimpleDateFormat("EEEE, MMMM dd, yyyy", Locale.getDefault()) }
+    var currentDateTime by remember { mutableStateOf(Date()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentDateTime = Date()
+            delay(1000)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -96,6 +106,36 @@ fun HomeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Live Clock Header (Small Size)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, NaturalBorder),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = formatDate.format(currentDateTime),
+                        fontSize = 12.sp,
+                        color = NaturalTextSecondary,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = formatTime.format(currentDateTime),
+                        fontSize = 16.sp,
+                        color = NaturalGreenAccent,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
+                }
+            }
+
             // Storm Warning Banner
             AnimatedVisibility(visible = isStormActive) {
                 Card(

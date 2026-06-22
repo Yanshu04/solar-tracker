@@ -10,6 +10,8 @@ import com.example.data.model.Alert
 import com.example.data.model.ForecastHourEntity
 import com.example.data.model.Site
 import com.example.data.repository.SolarRepository
+import com.google.ai.client.generativeai.GenerativeModel
+import com.example.BuildConfig
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -195,6 +197,54 @@ class SolarViewModel(
 
     private val _isExploreLoading = MutableStateFlow(false)
     val isExploreLoading = _isExploreLoading.asStateFlow()
+
+    // --- AI Insights State ---
+    private val _aiInsight = MutableStateFlow<String?>(null)
+    val aiInsight = _aiInsight.asStateFlow()
+
+    private val _isAiLoading = MutableStateFlow(false)
+    val isAiLoading = _isAiLoading.asStateFlow()
+
+    private val generativeModel = GenerativeModel(
+        modelName = "gemini-1.5-flash",
+        apiKey = BuildConfig.GEMINI_API_KEY
+    )
+
+    fun generateAiInsight(site: Site, forecast: List<ForecastHourEntity>) {
+        if (BuildConfig.GEMINI_API_KEY == "ADD_YOUR_GEMINI_KEY_HERE" || BuildConfig.GEMINI_API_KEY.isEmpty()) {
+            _aiInsight.value = "Please add a valid Gemini API key to your .env file to see AI insights."
+            return
+        }
+
+        viewModelScope.launch {
+            _isAiLoading.value = true
+            try {
+                val forecastSummary = forecast.joinToString("\n") { 
+                    "${it.hourTime}: Temp ${it.temperature}°C, Wind ${it.windSpeed}km/h, GHI ${it.solarGHI}W/m², Condition ${it.weatherCondition}"
+                }
+                
+                val prompt = """
+                    You are a professional solar energy consultant. 
+                    Analyze the following forecast for the site '${site.name}' (Lat: ${site.latitude}, Lng: ${site.longitude}):
+                    
+                    $forecastSummary
+                    
+                    Current Site Status: ${site.status}
+                    
+                    Provide a concise (2-3 sentences) summary of tomorrow's solar production outlook and any safety or optimization advice. 
+                    Keep the tone professional and helpful.
+                """.trimIndent()
+
+                val response = generativeModel.generateContent(prompt)
+                _aiInsight.value = response.text
+            } catch (e: Exception) {
+                _aiInsight.value = "Unable to generate AI insight at this time."
+                e.printStackTrace()
+            } finally {
+                _isAiLoading.value = false
+            }
+        }
+    }
 
     private val _exploredLocationName = MutableStateFlow("")
     val exploredLocationName = _exploredLocationName.asStateFlow()

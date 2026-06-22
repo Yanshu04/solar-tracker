@@ -34,6 +34,8 @@ fun PredictionScreen(
 ) {
     val selectedSite by viewModel.selectedSite.collectAsState()
     val forecastList by viewModel.selectedSiteForecast.collectAsState()
+    val aiInsight by viewModel.aiInsight.collectAsState()
+    val isAiLoading by viewModel.isAiLoading.collectAsState()
 
     // Determine high risk hours
     val hasStormRisk = forecastList.any { it.weatherCondition == "storm" || it.actionColor == "red" }
@@ -62,7 +64,23 @@ fun PredictionScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = NaturalBg
-                )
+                ),
+                actions = {
+                    IconButton(
+                        onClick = {
+                            selectedSite?.let { site ->
+                                viewModel.generateAiInsight(site, forecastList)
+                            }
+                        },
+                        enabled = !isAiLoading && selectedSite != null && forecastList.isNotEmpty()
+                    ) {
+                        if (isAiLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = NaturalGreenAccent, strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = "Generate AI Insight", tint = NaturalGreenAccent)
+                        }
+                    }
+                }
             )
         },
         containerColor = NaturalBg,
@@ -82,6 +100,46 @@ fun PredictionScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
+                // AI Insight Section
+                aiInsight?.let { insight ->
+                    item {
+                        Text(
+                            text = "AI SITE ANALYSIS",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            color = NaturalTextSecondary,
+                            letterSpacing = 1.sp,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = NaturalGreenAccent.copy(alpha = 0.05f)),
+                            border = BorderStroke(1.dp, NaturalGreenAccent.copy(alpha = 0.2f)),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Icon(
+                                    Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    tint = NaturalGreenAccent,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = insight,
+                                    fontSize = 13.sp,
+                                    color = NaturalTextPrimary,
+                                    lineHeight = 18.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // Header Label
                 item {
                     Text(
