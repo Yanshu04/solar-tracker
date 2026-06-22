@@ -69,6 +69,7 @@ class SolarViewModel(
 
     fun selectSite(siteId: String) {
         _selectedSiteId.value = siteId
+        _aiInsight.value = null // Clear previous AI result when site changes
     }
 
     fun refreshWeather() {
@@ -212,33 +213,34 @@ class SolarViewModel(
 
     fun generateAiInsight(site: Site, forecast: List<ForecastHourEntity>) {
         if (BuildConfig.GEMINI_API_KEY == "ADD_YOUR_GEMINI_KEY_HERE" || BuildConfig.GEMINI_API_KEY.isEmpty()) {
-            _aiInsight.value = "Please add a valid Gemini API key to your .env file to see AI insights."
+            _aiInsight.value = "Please add a valid Gemini API key to your .env file."
             return
         }
 
         viewModelScope.launch {
             _isAiLoading.value = true
             try {
-                val forecastSummary = forecast.joinToString("\n") { 
-                    "${it.hourTime}: Temp ${it.temperature}°C, Wind ${it.windSpeed}km/h, GHI ${it.solarGHI}W/m², Condition ${it.weatherCondition}"
+                // Take only daylight hours to keep prompt concise
+                val forecastSummary = forecast.take(12).joinToString("\n") { 
+                    "${it.hourTime}: Temp ${it.temperature}°C, GHI ${it.solarGHI}W/m², ${it.weatherCondition}"
                 }
                 
                 val prompt = """
-                    You are a professional solar energy consultant. 
-                    Analyze the following forecast for the site '${site.name}' (Lat: ${site.latitude}, Lng: ${site.longitude}):
-                    
+                    You are a solar energy expert. Analyze this forecast for '${site.name}':
                     $forecastSummary
-                    
-                    Current Site Status: ${site.status}
-                    
-                    Provide a concise (2-3 sentences) summary of tomorrow's solar production outlook and any safety or optimization advice. 
-                    Keep the tone professional and helpful.
+                    Site Status: ${site.status}
+                    Provide a 2-sentence outlook on tomorrow's production and a technical tip.
                 """.trimIndent()
 
                 val response = generativeModel.generateContent(prompt)
                 _aiInsight.value = response.text
             } catch (e: Exception) {
-                _aiInsight.value = "Unable to generate AI insight at this time."
+                val errorMsg = e.message ?: ""
+                _aiInsight.value = when {
+                    errorMsg.contains("404") -> "Model not found. Please ensure 'Gemini API' is enabled in your Google AI Studio project."
+                    errorMsg.contains("429") -> "AI rate limit reached. Please try again in a minute."
+                    else -> "AI Error: ${e.localizedMessage ?: "Connection failed"}"
+                }
                 e.printStackTrace()
             } finally {
                 _isAiLoading.value = false

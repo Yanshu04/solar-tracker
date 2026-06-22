@@ -5,11 +5,12 @@ Solar Tracker is an Android application designed to manage and monitor solar pan
 ## Key Features
 
 *   **Live Dashboard**: Monitor panel status, current energy output, and system health at a glance.
-*   **Weather Integration**: Real-time weather updates and forecasts powered by Open-Meteo and Tomorrow.io to help predict energy generation.
-*   **AI-Powered Insights**: Uses Gemini AI to analyze performance data and provide actionable recommendations.
+*   **Weather Integration**: Real-time weather updates and forecasts powered by Open-Meteo and Tomorrow.io to help predict energy generation. Optimized to prevent API rate limiting.
+*   **AI-Powered Insights**: Uses Gemini 1.5 Flash to analyze tomorrow's forecast and provide actionable production summaries on the "Tomorrow" screen.
 *   **Multi-Site Management**: Easily switch between different solar installation sites.
 *   **Offline Support**: Local data persistence using Room ensures your data is available even without an internet connection.
 *   **Modern UI**: Built entirely with Jetpack Compose for a smooth, responsive user experience.
+*   **Live Clock**: Real-time date and time display on the dashboard.
 
 ## Getting Started
 

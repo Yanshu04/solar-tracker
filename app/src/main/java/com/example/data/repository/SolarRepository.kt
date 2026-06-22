@@ -144,7 +144,15 @@ class SolarRepository(
         val hasRealKey = apiKey.isNotEmpty() && apiKey != "MY_TOMORROW_API_KEY"
 
         val sites = solarDao.getAllSites()
+        val now = System.currentTimeMillis()
+        val refreshInterval = 5 * 60 * 1000 // 5 minutes
+
         for (site in sites) {
+            // Only refresh if data is older than 5 minutes OR if it's the first time
+            if (now - site.lastUpdated < refreshInterval && site.currentSolarGHI > 0) {
+                continue 
+            }
+
             if (site.isManualSetup) {
                 Log.d("SolarRepository", "Skipping live forecast API fetch for manual site: ${site.name}")
                 continue
