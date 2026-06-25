@@ -25,11 +25,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.permissions.*
 import com.example.data.model.Site
 import com.example.ui.SolarViewModel
 import com.example.ui.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun SitesListScreen(
     viewModel: SolarViewModel,
@@ -37,9 +38,18 @@ fun SitesListScreen(
     modifier: Modifier = Modifier
 ) {
     val sites by viewModel.sites.collectAsState()
+    val gpsStatus by viewModel.gpsStatus.collectAsState()
     var selectedFilter by remember { mutableStateOf("All") }
     var searchQuery by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
+
+    val locationPermissionState = rememberPermissionState(
+        android.Manifest.permission.ACCESS_FINE_LOCATION
+    )
+
+    val exploreSearchQuery by viewModel.exploreSearchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+    val isSearching by viewModel.isSearching.collectAsState()
 
     var activeSubTab by remember { mutableStateOf("Solar Plants") } // "Solar Plants" or "Explore Weather"
     var prefilledName by remember { mutableStateOf("") }
@@ -235,7 +245,7 @@ fun SitesListScreen(
                 }
 
                 Text(
-                    text = "LICENSED RAJKOT SITES (${filteredSites.size})",
+                    text = "REGISTERED SITES (${filteredSites.size})",
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
                     color = NaturalTextSecondary,
@@ -842,7 +852,11 @@ fun SitesListScreen(
                         modifier = Modifier.fillMaxWidth().testTag("add_site_name")
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         OutlinedTextField(
                             value = addLat,
                             onValueChange = { addLat = it },
@@ -856,6 +870,45 @@ fun SitesListScreen(
                             label = { Text("Longitude") },
                             singleLine = true,
                             modifier = Modifier.weight(1f).testTag("add_site_lng")
+                        )
+                        
+                        // GPS Detection Button
+                        IconButton(
+                            onClick = {
+                                android.util.Log.d("GPS_DEBUG", "GPS button clicked. Permission granted: ${locationPermissionState.status.isGranted}")
+                                if (locationPermissionState.status.isGranted) {
+                                    android.util.Log.d("GPS_DEBUG", "Requesting current location...")
+                                    viewModel.getCurrentLocation { lat, lng ->
+                                        android.util.Log.d("GPS_DEBUG", "Coordinates received: $lat, $lng")
+                                        addLat = lat.toString()
+                                        addLng = lng.toString()
+                                    }
+                                } else {
+                                    android.util.Log.d("GPS_DEBUG", "Launching permission request")
+                                    locationPermissionState.launchPermissionRequest()
+                                }
+                            },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(NaturalGreenPill)
+                                .testTag("detect_location_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MyLocation,
+                                contentDescription = "Detect my location",
+                                tint = NaturalGreenDarkText
+                            )
+                        }
+                    }
+
+                    gpsStatus?.let { status ->
+                        Text(
+                            text = status,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (status.contains("found")) NaturalGreenAccent else NaturalTextSecondary,
+                            modifier = Modifier.padding(horizontal = 4.dp)
                         )
                     }
 
@@ -1059,6 +1112,7 @@ fun SitesListScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        android.util.Log.d("GPS_DEBUG", "Add Site confirm button clicked")
                         val latVal = addLat.toDoubleOrNull()
                         val lngVal = addLng.toDoubleOrNull()
                         if (addName.isBlank()) {
@@ -1168,7 +1222,7 @@ fun SiteCard(
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Gujarat Area Grid • ${String.format("%.3f", site.latitude)}, ${String.format("%.3f", site.longitude)}",
+                        text = "Site Coordinates • ${String.format("%.3f", site.latitude)}, ${String.format("%.3f", site.longitude)}",
                         fontSize = 11.sp,
                         color = NaturalTextSecondary
                     )

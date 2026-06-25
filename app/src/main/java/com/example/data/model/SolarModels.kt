@@ -19,13 +19,15 @@ data class Site(
     val manualOverride: String = "None", // None, Follow, Hold, Stow
     val lastUpdated: Long = System.currentTimeMillis(),
     val hasSolarPlant: Boolean = true,
-    val isManualSetup: Boolean = false
+    val isManualSetup: Boolean = false,
+    val timezone: String = "Asia/Kolkata"
 )
 
 @Entity(tableName = "forecast_hours", primaryKeys = ["siteId", "hourTime"])
 data class ForecastHourEntity(
     val siteId: String,
     val hourTime: String, // e.g. "05:00 AM", "06:00 AM" ... "08:00 PM"
+    val timestamp: Long, // Chronological sorting
     val temperature: Double,
     val windSpeed: Double,
     val cloudCover: Double,

@@ -11,6 +11,7 @@ import retrofit2.http.Query
 data class OpenMeteoResponse(
     val latitude: Double?,
     val longitude: Double?,
+    val timezone: String?,
     val hourly: OpenMeteoHourly?
 )
 

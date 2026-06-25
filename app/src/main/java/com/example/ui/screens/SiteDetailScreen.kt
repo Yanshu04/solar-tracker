@@ -130,7 +130,7 @@ fun SiteDetailScreen(
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "Rajkot Gujarat Region • ${site.latitude}, ${site.longitude}",
+                                            text = "Site Coordinates • ${site.latitude}, ${site.longitude}",
                                             fontSize = 12.sp,
                                             color = NaturalTextSecondary
                                         )

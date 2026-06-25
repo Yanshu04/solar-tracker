@@ -34,6 +34,8 @@ fun PredictionScreen(
 ) {
     val selectedSite by viewModel.selectedSite.collectAsState()
     val forecastList by viewModel.selectedSiteForecast.collectAsState()
+    val aiInsight by viewModel.aiInsight.collectAsState()
+    val isAiLoading by viewModel.isAiLoading.collectAsState()
 
     // Determine high risk hours
     val hasStormRisk = forecastList.any { it.weatherCondition == "storm" || it.actionColor == "red" }
@@ -62,7 +64,23 @@ fun PredictionScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = NaturalBg
-                )
+                ),
+                actions = {
+                    IconButton(
+                        onClick = {
+                            selectedSite?.let { site ->
+                                viewModel.generateAiInsight(site, forecastList)
+                            }
+                        },
+                        enabled = !isAiLoading && selectedSite != null && forecastList.isNotEmpty()
+                    ) {
+                        if (isAiLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = NaturalGreenAccent, strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = "Generate AI Insight", tint = NaturalGreenAccent)
+                        }
+                    }
+                }
             )
         },
         containerColor = NaturalBg,
@@ -82,6 +100,46 @@ fun PredictionScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
+                // AI Insight Section
+                aiInsight?.let { insight ->
+                    item {
+                        Text(
+                            text = "AI SITE ANALYSIS",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            color = NaturalTextSecondary,
+                            letterSpacing = 1.sp,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = NaturalGreenAccent.copy(alpha = 0.05f)),
+                            border = BorderStroke(1.dp, NaturalGreenAccent.copy(alpha = 0.2f)),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Icon(
+                                    Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    tint = NaturalGreenAccent,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = insight,
+                                    fontSize = 13.sp,
+                                    color = NaturalTextPrimary,
+                                    lineHeight = 18.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // Header Label
                 item {
                     Text(
@@ -96,6 +154,20 @@ fun PredictionScreen(
 
                 // Grid of 4 summaries in 2 rows
                 item {
+                    val sunrise = selectedSite?.let { site ->
+                        val base = 6.0 - (site.longitude / 15.0 % 1.0)
+                        val hr = base.toInt()
+                        val min = ((base - hr) * 60).toInt()
+                        String.format("%02d:%02d AM", hr, min)
+                    } ?: "06:00 AM"
+
+                    val sunset = selectedSite?.let { site ->
+                        val base = 18.0 - (site.longitude / 15.0 % 1.0)
+                        val hr = base.toInt() - 12
+                        val min = ((base - base.toInt()) * 60).toInt()
+                        String.format("%02d:%02d PM", hr, min)
+                    } ?: "06:00 PM"
+
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -104,14 +176,14 @@ fun PredictionScreen(
                             SummaryCard(
                                 icon = Icons.Default.WbTwilight,
                                 title = "Sunrise",
-                                value = "06:02 AM",
+                                value = sunrise,
                                 labelColor = SolarYellow,
                                 modifier = Modifier.weight(1f)
                             )
                             SummaryCard(
                                 icon = Icons.Default.NightsStay,
                                 title = "Sunset",
-                                value = "07:15 PM",
+                                value = sunset,
                                 labelColor = SolarBlue,
                                 modifier = Modifier.weight(1f)
                             )
@@ -124,7 +196,7 @@ fun PredictionScreen(
                             SummaryCard(
                                 icon = Icons.Default.SolarPower,
                                 title = "Peak Sun",
-                                value = "11 AM - 3 PM",
+                                value = "12 PM - 2 PM",
                                 labelColor = NaturalGreenAccent,
                                 modifier = Modifier.weight(1f)
                             )
@@ -164,7 +236,7 @@ fun PredictionScreen(
                                 .padding(vertical = 16.dp)
                         ) {
                             Text(
-                                "No prediction cached. Press refresh at dashboard top-right to sync Rajkot telemetry data.",
+                                "No prediction cached. Press refresh at dashboard top-right to sync telemetry data.",
                                 modifier = Modifier.padding(16.dp),
                                 textAlign = TextAlign.Center,
                                 fontSize = 13.sp,
@@ -306,8 +378,9 @@ fun ForecastHourRow(item: ForecastHourEntity) {
                             fontSize = 15.sp,
                             color = NaturalTextPrimary
                         )
+                        val ghiDisplay = if (item.solarGHI > 0) "${String.format("%.0f", item.solarGHI)} W/m²" else "No Sunlight"
                         Text(
-                            text = "GHI: ${String.format("%.0f", item.solarGHI)} W/m² • ${String.format("%.0f", item.temperature)}°C",
+                            text = "GHI: $ghiDisplay • ${String.format("%.0f", item.temperature)}°C",
                             fontSize = 11.sp,
                             color = NaturalTextSecondary
                         )

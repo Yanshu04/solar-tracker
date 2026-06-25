@@ -32,10 +32,14 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Site
 import com.example.ui.SolarViewModel
 import com.example.ui.theme.*
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
+
+import androidx.compose.ui.res.painterResource
+import com.example.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,20 +55,40 @@ fun HomeScreen(
 
     var dropdownExpanded by remember { mutableStateOf(false) }
 
-    val activeStorms = sites.filter { it.status == "Storm mode" || it.currentWindSpeed > 50.0 }
+    val activeStorms = sites.filter { (it.status == "Storm mode") || (it.currentWindSpeed > 50.0) }
     val isStormActive = activeStorms.isNotEmpty()
 
-    val formatTime = remember { SimpleDateFormat("hh:mm:ss a", Locale.getDefault()) }
+    val formatTime = remember { SimpleDateFormat("hh:mm:ss a", Locale.US) }
+    var currentDateTime by remember { mutableStateOf(Date()) }
+
+    val siteLocalTimeFormat = remember { SimpleDateFormat("hh:mm:ss a", Locale.US) }
+    val siteLocalDateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.US) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentDateTime = Date()
+            delay(1000)
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Solar Dashboard",
-                        fontWeight = FontWeight.Bold,
-                        color = NaturalTextPrimary
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logo),
+                            contentDescription = "App Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "Solar Dashboard",
+                            fontWeight = FontWeight.Bold,
+                            color = NaturalTextPrimary
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = NaturalBg
@@ -134,7 +158,7 @@ fun HomeScreen(
                                 fontSize = 14.sp
                             )
                             Text(
-                                "Morbi & nearby arrays stowed. High wind warning active.",
+                                "Critical environmental condition detected. Arrays stowed for protection.",
                                 color = NaturalAlertSubText,
                                 fontSize = 12.sp
                             )
@@ -148,7 +172,82 @@ fun HomeScreen(
                 }
             }
 
-            // Site Selector Dropdown
+            // Live Clock Header (Small Size)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, NaturalBorder),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "SYSTEM TIME (INDIA)",
+                                fontSize = 10.sp,
+                                color = NaturalTextSecondary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = formatTime.format(currentDateTime),
+                                fontSize = 16.sp,
+                                color = NaturalGreenAccent,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                        
+                        selectedSite?.let { site ->
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "SITE LOCAL TIME",
+                                    fontSize = 10.sp,
+                                    color = NaturalTextSecondary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                val siteTz = TimeZone.getTimeZone(site.timezone)
+                                siteLocalTimeFormat.timeZone = siteTz
+                                siteLocalDateFormat.timeZone = siteTz
+                                
+                                Text(
+                                    text = siteLocalTimeFormat.format(currentDateTime),
+                                    fontSize = 16.sp,
+                                    color = SolarBlue,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.5.sp
+                                )
+                            }
+                        }
+                    }
+                    
+                    selectedSite?.let { site ->
+                        if (site.timezone != "Asia/Kolkata") {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            HorizontalDivider(color = NaturalBorder.copy(alpha = 0.3f))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = siteLocalDateFormat.format(currentDateTime),
+                                    fontSize = 11.sp,
+                                    color = NaturalTextSecondary
+                                )
+                                Text(
+                                    text = "Timezone: ${site.timezone}",
+                                    fontSize = 11.sp,
+                                    color = NaturalMuted
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             selectedSite?.let { site ->
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedCard(
@@ -178,7 +277,7 @@ fun HomeScreen(
                                     color = NaturalTextPrimary
                                 )
                                 Text(
-                                    text = "Lat: ${site.latitude}, Lng: ${site.longitude} • Rajkot",
+                                    text = "Location: ${site.latitude}, ${site.longitude}",
                                     fontSize = 12.sp,
                                     color = NaturalTextSecondary
                                 )
@@ -262,7 +361,7 @@ fun HomeScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "${String.format("%.1f", site.currentTemp)}°C",
+                                    text = "${String.format(Locale.US, "%.1f", site.currentTemp)}°C",
                                     fontSize = 32.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = NaturalTextPrimary
@@ -278,7 +377,7 @@ fun HomeScreen(
                             WeatherMetricItem(
                                 icon = Icons.Default.Bolt,
                                 label = "Sunlight",
-                                value = "${String.format("%.0f", site.currentSolarGHI)} W/m²",
+                                value = "${String.format(Locale.US, "%.0f", site.currentSolarGHI)} W/m²",
                                 color = SolarYellow,
                                 modifier = Modifier.weight(1f)
                             )
@@ -286,7 +385,7 @@ fun HomeScreen(
                             WeatherMetricItem(
                                 icon = Icons.Default.Air,
                                 label = "Wind Speed",
-                                value = "${String.format("%.1f", site.currentWindSpeed)} km/h",
+                                value = "${String.format(Locale.US, "%.1f", site.currentWindSpeed)} km/h",
                                 color = if (site.currentWindSpeed > 50.0) SolarRed else if (site.currentWindSpeed >= 30) SolarOrangeDark else SolarBlue,
                                 modifier = Modifier.weight(1f)
                             )
@@ -296,7 +395,7 @@ fun HomeScreen(
                             WeatherMetricItem(
                                 icon = Icons.Default.Cloud,
                                 label = "Cloud Cover",
-                                value = "${String.format("%.0f", site.currentCloudCover)}%",
+                                value = "${String.format(Locale.US, "%.0f", site.currentCloudCover)}%",
                                 color = SolarGray,
                                 modifier = Modifier.weight(1f)
                             )
@@ -304,7 +403,7 @@ fun HomeScreen(
                             WeatherMetricItem(
                                 icon = Icons.Default.SettingsInputAntenna,
                                 label = "Coordinates",
-                                value = "${String.format("%.3f", site.latitude)}, ${String.format("%.3f", site.longitude)}",
+                                value = "${String.format(Locale.US, "%.3f", site.latitude)}, ${String.format(Locale.US, "%.3f", site.longitude)}",
                                 color = SolarGreen,
                                 modifier = Modifier.weight(1f)
                             )
@@ -359,7 +458,7 @@ fun HomeScreen(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "${String.format("%.1f", site.currentAngle)}°",
+                                    text = "${String.format(Locale.US, "%.1f", site.currentAngle)}°",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = getModeColor(site.currentMode)

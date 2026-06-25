@@ -36,8 +36,8 @@ fun MainNavigationControl(
                     NavigationTabItem("home", "Home", Icons.Filled.Home, Icons.Outlined.Home),
                     NavigationTabItem("prediction", "Tomorrow", Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
                     NavigationTabItem("sites", "Sites", Icons.Filled.List, Icons.Outlined.List),
-                    NavigationTabItem("sitedetail", "Detail", Icons.Filled.Settings, Icons.Outlined.Settings),
-                    NavigationTabItem("alerts", "Alerts", Icons.Filled.Notifications, Icons.Outlined.Notifications)
+                    NavigationTabItem("alerts", "Alerts", Icons.Filled.Notifications, Icons.Outlined.Notifications),
+                    NavigationTabItem("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
                 ).forEach { item ->
                     val selected = currentRoute == item.route
                     NavigationBarItem(
@@ -104,6 +104,11 @@ fun MainNavigationControl(
             }
             composable("alerts") {
                 AlertsScreen(viewModel = viewModel)
+            }
+            composable("settings") {
+                SettingsScreen(
+                    viewModel = viewModel
+                )
             }
         }
     }

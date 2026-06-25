@@ -30,10 +30,10 @@ interface SolarDao {
     suspend fun insertSite(site: Site)
 
     // Forecasts Queries
-    @Query("SELECT * FROM forecast_hours WHERE siteId = :siteId ORDER BY hourTime ASC")
+    @Query("SELECT * FROM forecast_hours WHERE siteId = :siteId ORDER BY timestamp ASC")
     fun getForecastForSiteFlow(siteId: String): Flow<List<ForecastHourEntity>>
 
-    @Query("SELECT * FROM forecast_hours WHERE siteId = :siteId ORDER BY hourTime ASC")
+    @Query("SELECT * FROM forecast_hours WHERE siteId = :siteId ORDER BY timestamp ASC")
     suspend fun getForecastForSite(siteId: String): List<ForecastHourEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

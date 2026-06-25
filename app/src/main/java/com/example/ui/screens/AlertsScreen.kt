@@ -120,7 +120,7 @@ fun AlertsScreen(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    "No critical failures, offline delays, or high winds reported in Rajkot zones.",
+                                    "No critical failures, offline delays, or high winds reported in monitored zones.",
                                     fontSize = 12.sp,
                                     color = NaturalTextSecondary,
                                     textAlign = TextAlign.Center
