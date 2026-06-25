@@ -754,9 +754,3 @@ fun getModeColor(mode: String): Color {
         else -> NaturalMuted
     }
 }
-
-@Preview(showBackground = true, widthDp = 800, heightDp = 200)
-@Composable
-fun HomeScreen() {
-    FinalBanner()
-}
