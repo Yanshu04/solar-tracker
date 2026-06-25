@@ -1,6 +1,6 @@
 # SolarTrack
 
-![Banner](screenshots/)
+![Banner](screenshots/banner.png)
 
 SolarTrack is a specialized Android application for managing solar panel arrays across multiple geographic sites. It connects to the Tomorrow.io and Open-Meteo APIs to pull real-time weather data, using that telemetry to calculate optimal panel tilt angles and trigger safety protocols. The app handles everything from storm stowing and rain protection to AI-driven production forecasting using the Gemini API, ensuring every site operates at peak efficiency while staying protected from the elements.
 
