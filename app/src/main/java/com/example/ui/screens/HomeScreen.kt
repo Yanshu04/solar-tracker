@@ -39,6 +39,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -752,4 +753,10 @@ fun getModeColor(mode: String): Color {
         mode.contains("Stow") -> NaturalAlertAccent
         else -> NaturalMuted
     }
+}
+
+@Preview(showBackground = true, widthDp = 800, heightDp = 200)
+@Composable
+fun HomeScreen() {
+    FinalBanner()
 }
